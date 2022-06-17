@@ -19,6 +19,12 @@ from pygame.locals import (
 from objects.character import Character
 from objects.weapon import Weapon
 from helper.menu import Menu
+from helper.states import (
+    SWITCHING,
+    LOST,
+    WON,
+    PLAYING
+)
 
 from settings import (
     TILE_S,
@@ -50,10 +56,6 @@ KEY_MATCHING = {
     K_2: 1,
     K_3: 2
 }
-
-SWITCHING = 'switching'
-ENDED = 'ended'
-PLAYING = 'playing'
 
 
 class Game():
@@ -169,14 +171,12 @@ class Game():
         Checks whether character and npc in same tile.
         """
         self.fighting = None
-        self.character.heal()
+        char = self.character
+        char.heal()
         # check if character in same position as npc
         for count, npc in enumerate(self.npcs):
             npc.heal()
-            if (
-                self.character.pos_x,
-                self.character.pos_y
-            ) == (npc.pos_x, npc.pos_y):
+            if (char.pos_x, char.pos_y) == (npc.pos_x, npc.pos_y):
                 self.fighting = count
         # attack player if in same tile
         if type(self.fighting) == int:
@@ -185,8 +185,8 @@ class Game():
         if self.state == PLAYING:
             # we only count player's turns as it would otherwise be confusing
             self.turn += 1
-            # update board and menu
-            self.draw()
+        # update board and menu
+        self.draw()
 
     def switch_weapon(self, events):
         """Waits for user to pick a weapon among choices.
@@ -194,9 +194,6 @@ class Game():
         Triggers menu list of weapons.
         Action keys are ignored and players cannot move.
         """
-        # show options in menu
-        self.menu.draw_weapon_choices()
-        pygame.display.flip()
         # wait for weapon choice
         for event in events:
             if event.type == KEYDOWN and event.key in SWITCH_KEYS:
@@ -220,6 +217,7 @@ class Game():
                 # switch weapon
                 elif event.key == K_s:
                     self.state = SWITCHING
+                    self.draw()
                 # attack if in same position as npc and weapon held
                 elif event.key == K_a and self.character.weapon and \
                         type(self.fighting) == int:
@@ -259,12 +257,7 @@ class Game():
 
     def end_game(self, victory):
         """End the game."""
-        self.state = ENDED
-        if not victory:
-            self.menu.draw_defeat()
-        else:
-            self.menu.draw_victory()
-        pygame.display.flip()
+        self.state = WON if victory else LOST
 
     def reset_game(self):
         self.__init__()

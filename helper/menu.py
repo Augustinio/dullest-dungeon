@@ -1,5 +1,12 @@
 import pygame
 
+from helper.states import (
+    SWITCHING,
+    LOST,
+    WON,
+    PLAYING
+)
+
 from settings import (
     MENU_WIDTH,
     PLAY_DIM,
@@ -78,21 +85,11 @@ class Menu():
             self.game.screen.blit(wpn_stat_a, (self.zero, 180))
             self.game.screen.blit(wpn_stat_b, (self.zero + 20, 180))
 
-    def draw_always(self):
-        """Draw the top part of the menu"""
-        self.reset()
-        self.draw_turn()
-        self.draw_title()
-        self.draw_hints()
-        self.draw_player_health()
-        self.draw_player_weapon()
-
     def draw_weapon_choices(self):
         """Draw the weapon choices, including name, dmg and backlash.
 
         Is displayed when player hits s.
         """
-        self.draw_always()
         # draw choose your weapon
         choose = self.font_hints.render("Choose your weapon", True, 'white')
         self.game.screen.blit(choose, (self.zero, 220))
@@ -159,13 +156,11 @@ class Menu():
 
     def draw_defeat(self):
         """Draw defeat screem."""
-        self.draw_always()
         game_over = self.font_title.render('GAME OVER', True, 'red')
         self.game.screen.blit(game_over, (self.zero, PLAY_DIM/2))
 
     def draw_victory(self):
         """Draw victory screem."""
-        self.draw_always()
         victory = self.font_title.render('VICTORY', True, 'green')
         self.game.screen.blit(victory, (self.zero, PLAY_DIM/2))
 
@@ -174,5 +169,20 @@ class Menu():
 
         Is displayed when player is playing.
         """
-        self.draw_always()
-        self.draw_ennemies()
+        # draw top part of menu
+        self.reset()
+        self.draw_turn()
+        self.draw_title()
+        self.draw_hints()
+        self.draw_player_health()
+        self.draw_player_weapon()
+        # draw state dependent menu
+        state = self.game.state
+        if state == PLAYING:
+            self.draw_ennemies()
+        elif state == WON:
+            self.draw_victory()
+        elif state == LOST:
+            self.draw_defeat()
+        elif state == SWITCHING:
+            self.draw_weapon_choices()
