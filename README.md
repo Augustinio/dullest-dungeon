@@ -1,5 +1,5 @@
 
-# Dullet Dungeon
+# Dullets Dungeon
 
 A python turn-based rpg powered by pygame.
 
