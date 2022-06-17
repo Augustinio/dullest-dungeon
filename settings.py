@@ -11,7 +11,7 @@ NUM_TILES = 10
 TILE_S = PLAY_DIM / NUM_TILES
 
 # Number of NPCs on the board
-NPC_NUMS = 2
+NPC_NUMS = 5
 # Max number of NPCs displayed in the menu
 MAX_DISPLAYED_NPCS = 5
 # Max health players start with

@@ -66,16 +66,17 @@ class Menu():
     def draw_player_weapon(self):
         """Draw current player weapon."""
         wpn = self.game.character.weapon
+        # draw weapon name
         wpn_name = self.font_hints.render(
             wpn.name if wpn else "No Weapon", True, 'white'
         )
+        self.game.screen.blit(wpn_name, (self.zero, 160))
+        # draw weapon stats
         if wpn:
             wpn_stat_a = self.font_hints.render(str(wpn.dmg), True, 'white')
             wpn_stat_b = self.font_hints.render(str(wpn.backlash), True, 'red')
             self.game.screen.blit(wpn_stat_a, (self.zero, 180))
             self.game.screen.blit(wpn_stat_b, (self.zero + 20, 180))
-
-        self.game.screen.blit(wpn_name, (self.zero, 160))
 
     def draw_always(self):
         """Draw the top part of the menu"""
@@ -92,9 +93,10 @@ class Menu():
         Is displayed when player hits s.
         """
         self.draw_always()
+        # draw choose your weapon
         choose = self.font_hints.render("Choose your weapon", True, 'white')
         self.game.screen.blit(choose, (self.zero, 220))
-
+        # draw weapon name and stats for each weapon
         for count, wpn in enumerate(self.game.weapons):
             wpn_name = self.font_hints.render(
                 f'[{count + 1}] - {wpn.name}', True, 'white'

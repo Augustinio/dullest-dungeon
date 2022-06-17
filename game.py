@@ -28,7 +28,8 @@ from settings import (
     TILE_COLOR_ONE,
     TILE_COLOR_TWO,
     NPC_NUMS,
-    WEAPONS
+    WEAPONS,
+    MAX_HEALTH,
 )
 
 ACTION_KEYS = [
@@ -52,8 +53,20 @@ KEY_MATCHING = {
     K_3: 2
 }
 
+SWITCHING = 'switching'
+ENDED = 'ended'
+PLAYING = 'playing'
+
 
 class Game():
+    # ----------- check validity of settings -------------
+    def check_settings(self):
+        """Check that settings values are usable."""
+        assert len(WEAPONS), 'you need at least one weapon to play'
+        assert NPC_NUMS > 0, 'you need at least one enemy to play'
+        assert NPC_NUMS < NUM_TILES ** 2, 'too many NPCs for this board size'
+        assert MAX_HEALTH > 0, 'max health must be more than 0'
+
     # ----------------- init functions -------------------
     def init_weapons(self):
         """Returns an array of weapons.
@@ -108,7 +121,10 @@ class Game():
         Instantiates the Menu.
         """
         pygame.init()
+        self.check_settings()
+
         self.running = False
+        self.state = None
         self.turn = 1
         self.weapons = self.init_weapons()
         self.npcs, self.character = self.init_chars()
@@ -167,31 +183,29 @@ class Game():
         # attack player if in same tile
         if type(self.fighting) == int:
             self.attack(by_npc=True)
-        # we only count player's turns as it would otherwise be confusing
-        self.turn += 1
-        # update board and menu
-        self.draw()
+        # game might have ended at this point
+        if self.state == PLAYING:
+            # we only count player's turns as it would otherwise be confusing
+            self.turn += 1
+            # update board and menu
+            self.draw()
 
-    def switch_weapon(self):
+    def switch_weapon(self, events):
         """Waits for user to pick a weapon among choices.
 
         Triggers menu list of weapons.
         Action keys are ignored and players cannot move.
         """
-        picked = False
         # show options in menu
         self.menu.draw_weapon_choices()
         pygame.display.flip()
         # wait for weapon choice
-        while self.running and not picked:
-            events = pygame.event.get()
-            # allow players to quit
-            self.listen_to_quit_or_reset(events)
-            for event in events:
-                if event.type == KEYDOWN and event.key in SWITCH_KEYS:
-                    self.character.weapon = \
-                        self.weapons[KEY_MATCHING[event.key]]
-                    picked = True
+        for event in events:
+            if event.type == KEYDOWN and event.key in SWITCH_KEYS:
+                self.character.weapon = \
+                    self.weapons[KEY_MATCHING[event.key]]
+                self.state = PLAYING
+                self.end_turn()
 
     def player_play(self, events):
         """Handles inputs during player's turn.
@@ -220,8 +234,7 @@ class Game():
                     self.end_turn()
                 # switch weapon
                 elif event.key == K_s:
-                    self.switch_weapon()
-                    self.end_turn()
+                    self.state = SWITCHING
                 # attack if in same position as npc and weapon held
                 elif event.key == K_a and self.character.weapon and \
                         type(self.fighting) == int:
@@ -255,19 +268,18 @@ class Game():
     def run(self):
         """Start the game."""
         self.running = True
+        self.state = PLAYING
         self.draw()
         self.mainloop()
 
     def end_game(self, victory):
         """End the game."""
+        self.state = ENDED
         if not victory:
             self.menu.draw_defeat()
         else:
             self.menu.draw_victory()
         pygame.display.flip()
-        while True:
-            events = pygame.event.get()
-            self.listen_to_quit_or_reset(events)
 
     def reset_game(self):
         self.__init__()
@@ -289,4 +301,7 @@ class Game():
         while self.running:
             events = pygame.event.get()
             self.listen_to_quit_or_reset(events)
-            self.player_play(events)
+            if self.state == PLAYING:
+                self.player_play(events)
+            elif self.state == SWITCHING:
+                self.switch_weapon(events)
