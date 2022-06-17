@@ -32,13 +32,11 @@ from settings import (
     MAX_HEALTH,
 )
 
-ACTION_KEYS = [
+MOVE_KEYS = [
     K_UP,
     K_DOWN,
     K_LEFT,
     K_RIGHT,
-    K_s,
-    K_a,
 ]
 
 SWITCH_KEYS = [
@@ -210,28 +208,15 @@ class Game():
     def player_play(self, events):
         """Handles inputs during player's turn.
 
-        Only inputs from the ACTION_KEYS array are taken into account.
+        Move character, switch weapon or attack
         """
         for event in events:
-            if event.type == KEYDOWN and event.key in ACTION_KEYS:
-                # move up
-                if event.key == K_UP and self.character.pos_y > 0:
-                    self.character.pos_y -= 1
-                    self.end_turn()
-                # move down
-                elif event.key == K_DOWN and \
-                        self.character.pos_y < NUM_TILES - 1:
-                    self.character.pos_y += 1
-                    self.end_turn()
-                # move left
-                elif event.key == K_RIGHT and \
-                        self.character.pos_x < NUM_TILES - 1:
-                    self.character.pos_x += 1
-                    self.end_turn()
-                # move right
-                elif event.key == K_LEFT and self.character.pos_x > 0:
-                    self.character.pos_x -= 1
-                    self.end_turn()
+            if event.type == KEYDOWN:
+                # move character
+                if event.key in MOVE_KEYS:
+                    moved = self.character.move(event.key)
+                    if moved:
+                        self.end_turn()
                 # switch weapon
                 elif event.key == K_s:
                     self.state = SWITCHING
